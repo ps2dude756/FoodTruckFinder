@@ -111,24 +111,32 @@ class Test_Data_Source(unittest.TestCase):
         actual = self.data_source.get_headers(set([]))
         self.assertEquals(expected, actual)
 
-    def test_next_no_data_no_headers(self):
+    def test_get_headers_bad_header(self):
+        expected = {
+            'id': 1
+        }
+        headers = set(['id', 'abcdefg'])
+        actual = self.data_source.get_headers(headers, 'name')
+        self.assertEquals(expected, actual)
+
+    def test_get_items_no_data_no_headers(self):
         expected = []
         actual = [x for x in self.empty_data_source.get_items({})]
         self.assertEquals(expected, actual)
 
-    def test_next_no_data(self):
+    def test_get_items_no_data(self):
         headers = {'sid': 0}
 
         expected = []
         actual = [x for x in self.empty_data_source.get_items(headers)]
         self.assertEquals(expected, actual)
 
-    def test_next_no_headers(self):
+    def test_get_items_no_headers(self):
         expected = []
         actual = [x for x in self.data_source.get_items({})]
         self.assertEquals(expected, actual)
 
-    def test_next(self):
+    def test_get_items(self):
         headers = {'sid': 0}
 
         expected = [
