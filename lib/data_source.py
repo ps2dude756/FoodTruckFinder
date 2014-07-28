@@ -30,7 +30,7 @@ class DataSource:
 
         return header_indices
 
-    def get_items(self, header_indices, *args):
+    def gen_items(self, header_indices, *args):
         """Generator which yields selected info from an item
 
         Arguments:

@@ -119,24 +119,24 @@ class Test_Data_Source(unittest.TestCase):
         actual = self.data_source.get_headers(headers, 'name')
         self.assertEquals(expected, actual)
 
-    def test_get_items_no_data_no_headers(self):
+    def test_gen_items_no_data_no_headers(self):
         expected = []
-        actual = [x for x in self.empty_data_source.get_items({})]
+        actual = [x for x in self.empty_data_source.gen_items({})]
         self.assertEquals(expected, actual)
 
-    def test_get_items_no_data(self):
+    def test_gen_items_no_data(self):
         headers = {'sid': 0}
 
         expected = []
-        actual = [x for x in self.empty_data_source.get_items(headers)]
+        actual = [x for x in self.empty_data_source.gen_items(headers)]
         self.assertEquals(expected, actual)
 
-    def test_get_items_no_headers(self):
+    def test_gen_items_no_headers(self):
         expected = []
-        actual = [x for x in self.data_source.get_items({})]
+        actual = [x for x in self.data_source.gen_items({})]
         self.assertEquals(expected, actual)
 
-    def test_get_items(self):
+    def test_gen_items(self):
         headers = {'sid': 0}
 
         expected = [
@@ -146,7 +146,7 @@ class Test_Data_Source(unittest.TestCase):
             {'sid': 4},
             {'sid': 5}
         ]
-        actual = [x for x in self.data_source.get_items(headers)]
+        actual = [x for x in self.data_source.gen_items(headers)]
         self.assertEquals(expected, actual)
 
 if __name__ == '__main__':
