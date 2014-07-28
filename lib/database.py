@@ -50,7 +50,7 @@ class DataBase:
         """
         cur = self.conn.cursor().execute(
             statement,
-            (longitude, longitude, latitude, latitude, distance)
+            (longitude, longitude, latitude, latitude, distance*distance)
         )
         for row in cur.fetchall():
             foodtruck = {key: val for key, val in zip(row.keys(), row)}    
