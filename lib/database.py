@@ -1,9 +1,17 @@
+import math
 import sqlite3
+
+from haversine import great_circle_distance, miles
 
 class DataBase:
     def __init__(self, database):
         self.conn = sqlite3.connect(database)
         self.conn.row_factory = sqlite3.Row
+        self.conn.create_function(
+            'great_circle_distance', 4, great_circle_distance
+        )
+        self.conn.create_function('radians', 1, math.radians)
+        self.conn.create_function('miles', 1, miles)
 
     def __del__(self):
         self.conn.close()
@@ -45,12 +53,16 @@ class DataBase:
 
         statement = """
             select name, address, fooditems from foodtrucks
-            where (longitude - ?)*(longitude - ?) + 
-            (latitude - ?)*(latitude - ?) <= ?
+            where miles(great_circle_distance(
+                radians(longitude),
+                radians(latitude),
+                radians(?),
+                radians(?)
+            )) <= ?
         """
         cur = self.conn.cursor().execute(
             statement,
-            (longitude, longitude, latitude, latitude, distance*distance)
+            (longitude, latitude, distance)
         )
         for row in cur.fetchall():
             foodtruck = {key: val for key, val in zip(row.keys(), row)}    
