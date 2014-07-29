@@ -33,36 +33,39 @@ class DataBase:
         self.conn.commit()
         cur.close()
 
-    def add_row(self, name, address, fooditems, longitude, latitude):
+    def add_row(self, name, address, fooditems, latitude, longitude):
         statement = """
             insert into foodtrucks 
-                (name, address, fooditems, longitude, latitude)
+                (name, address, fooditems, latitude, longitude)
                 values (?, ?, ?, ?, ?)
         """
         cur = self.conn.cursor()
-        cur.execute(
-            statement,
-            (name, address, fooditems, latitude, longitude)
-        )
-        self.conn.commit()
+        try:
+            cur.execute(
+                statement,
+                (name, address, fooditems, latitude, longitude)
+            )
+            self.conn.commit()
+        except sqlite3.IntegrityError:
+            pass
         cur.close()
 
-    def gen_within_distance(self, distance, longitude, latitude):
+    def gen_within_distance(self, distance, latitude, longitude):
         if distance < 0.0:
             raise ValueError('distance must be a positive number')
 
         statement = """
             select name, address, fooditems from foodtrucks
             where miles(great_circle_distance(
-                radians(longitude),
                 radians(latitude),
+                radians(longitude),
                 radians(?),
                 radians(?)
             )) <= ?
         """
         cur = self.conn.cursor().execute(
             statement,
-            (longitude, latitude, distance)
+            (latitude, longitude, distance)
         )
         for row in cur.fetchall():
             foodtruck = {key: val for key, val in zip(row.keys(), row)}    

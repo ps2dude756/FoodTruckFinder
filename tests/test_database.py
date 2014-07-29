@@ -39,7 +39,7 @@ class Test_DataBase(unittest.TestCase):
             }
         ]
 
-        actual = [x for x in self.database.gen_within_distance(100, 0.0, 0.0)]
+        actual = [x for x in self.database.gen_within_distance(100.0, 0.0, 0.0)]
         self.assertEquals(expected, actual)
 
     def test_gen_within_distance_bad_distance(self):
