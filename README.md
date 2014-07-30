@@ -15,10 +15,10 @@ Technical Choices
 Back-end
 --------
 I chose Python as the back-end language because it is my preferred language 
-and the language most of Uber's back-end is written in. I then decided to use
+and the language most of Uber's back-end code is written in. I then decided to use
 Flask for the web framework because some of my colleagues have recommended it
-in the past, and I have read that since it is smaller and more minimalistic,
-it works better for creating REST apis than a larger framework such as Django.
+in the past, and I have read that since it is smaller and more minimalistic than
+other frameworks such as Django, it works better for creating REST apis.
 While I have used Python in the past, I had never used Flask before, nor had I
 done any web coding in Python. Because of this, one of my early tasks for this
 project was to read large sections of the documentation on the Flask website,
@@ -26,6 +26,15 @@ detailed in Issue #1.
 
 Front-end
 ---------
+Because I chose the back-end track, I focused very little on the front-end code, 
+writing a front-end mostly to act as a proof of concept. As a result of this,
+the front-end is written in HTML and a small amount of Javascript, using no
+frameworks or CSS. The one significant activity the front-end code does preform
+is converting the address provided by the user into latitude and longitude to 
+pass to the back-end. To do this I chose to use Google's Maps API, because this
+would allow for further extension of the front-end using Maps. While Google provides
+and HTTP endpoint for their geocoding service, they recommend using the JavaScript
+client for any real-time geocoding.
 
 Hosting
 -------
@@ -36,10 +45,22 @@ project.
 
 Trade-offs
 ==========
+If given more time to work on the project, there are several changes I'd like to make.
+The largest change I'd make is to spend time learning JavaScript and CSS so I could 
+make a proper front-end and choose the Full Stack track over the Back-End track. I'd
+have liked to display a map on the page as opposed to a table, with markers for the 
+returned restaurants and the user's location.
+For smaller changes, I'd have liked to include a basic admin page that can be logged into
+to manually add or remove foodtrucks from, exposing more API endpoints as appropriate. 
+Additionally, there were some foodtrucks on [DataSF: Food Trucks](https://data.sfgov.org/Permitting/Mobile-Food-Facility-Permit/rqzj-sfat)
+that did not have latitude and longitude coordinates, so I was unable to add 
+them to the database. I'd like to have included a function to geocode them using
+Google's HTTP Maps API at index-time.
 
 Link to other code
 ==================
-
+Here is a link to [RikkaBot](https://github.com/ps2dude756/RikkaBot), an ongoing
+project I've been working on over the last month.
 
 Link to resume
 ==============
