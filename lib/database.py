@@ -1,17 +1,35 @@
+import inspect
 import math
-import sqlite3
+import os
+import psycopg2
 
-from haversine import great_circle_distance, miles
+import haversine
+
+GREAT_CIRCLE_DISTANCE_FUNCTION = """
+    create or replace function 
+    great_circle_distance(latitude1 real, longitude1 real, latitude2 real, longitude2 real) 
+    returns real as $$""" + '\n{0}\n'.format(
+        inspect.getsource(haversine)
+    ) + """return great_circle_distance(latitude1, longitude1, latitude2, longitude2) $$ 
+    language plpythonu"""
+MILES_FUNCTION = """
+    create or replace function
+    miles(kilometers real)
+    returns real as $$""" + '\n{0}\n'.format(
+        inspect.getsource(haversine)
+    ) + """return miles(kilometers) $$ 
+    language plpythonu"""
+RADIANS_FUNCTION = """
+    create or replace function
+    radians(degrees real)
+    returns real as $$
+        import math
+        return math.radians(degrees)
+    $$ language plpythonu"""
 
 class DataBase:
-    def __init__(self, database):
-        self.conn = sqlite3.connect(database)
-        self.conn.row_factory = sqlite3.Row
-        self.conn.create_function(
-            'great_circle_distance', 4, great_circle_distance
-        )
-        self.conn.create_function('radians', 1, math.radians)
-        self.conn.create_function('miles', 1, miles)
+    def __init__(self, database, user):
+        self.conn = psycopg2.connect(database=database, user=user)
 
     def __del__(self):
         self.conn.close()
@@ -22,7 +40,7 @@ class DataBase:
         statement = """
             drop table if exists foodtrucks;
             create table foodtrucks (
-                id integer primary key autoincrement,
+                id serial primary key,
                 name text not null,
                 address text not null,
                 fooditems text not null,
@@ -30,8 +48,13 @@ class DataBase:
                 longitude real not null
             );
         """
+
         cur = self.conn.cursor()
-        cur.executescript(statement)
+        cur.execute(statement)
+        cur.execute(GREAT_CIRCLE_DISTANCE_FUNCTION)
+        cur.execute(MILES_FUNCTION)
+        cur.execute(RADIANS_FUNCTION)
+
         self.conn.commit()
         cur.close()
 
@@ -48,8 +71,8 @@ class DataBase:
 
         statement = """
             insert into foodtrucks 
-                (name, address, fooditems, latitude, longitude)
-                values (?, ?, ?, ?, ?)
+                (name, address, fooditems, latitude, longitude)values 
+                (%s, %s, %s, %s, %s)
         """
         cur = self.conn.cursor()
         try:
@@ -57,9 +80,11 @@ class DataBase:
                 statement,
                 (name, address, fooditems, latitude, longitude)
             )
-            self.conn.commit()
-        except sqlite3.IntegrityError:
-            pass
+        except psycopg2.IntegrityError as e:
+            self.conn.rollback()
+            cur.close()
+            raise e
+        self.conn.commit()
         cur.close()
 
     def gen_within_distance(self, distance, latitude, longitude):
@@ -79,15 +104,21 @@ class DataBase:
             where miles(great_circle_distance(
                 radians(latitude),
                 radians(longitude),
-                radians(?),
-                radians(?)
-            )) <= ?
+                radians(%s)::real,
+                radians(%s)::real
+            )) <= %s
         """
-        cur = self.conn.cursor().execute(
+        cur = self.conn.cursor()
+        cur.execute(
             statement,
             (latitude, longitude, distance)
         )
         for row in cur.fetchall():
-            foodtruck = {key: val for key, val in zip(row.keys(), row)}    
+            foodtruck = {
+                key: val for key, val in zip(
+                    (d[0] for d in cur.description), 
+                    row
+                )
+            }    
             yield foodtruck
         cur.close()

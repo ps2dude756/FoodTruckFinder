@@ -1,8 +1,5 @@
 import math
 
-RADIUS_OF_EARTH = 6371.0
-MILES_PER_KILOMETER = 0.621371
-
 def great_circle_distance(latitude1, longitude1, latitude2, longitude2):
     """Calculates the great circle distance between two latitude and longitude points
 
@@ -12,6 +9,7 @@ def great_circle_distance(latitude1, longitude1, latitude2, longitude2):
     latitude2 -- float - the second point's latitude
     longitude2 -- float - the second point's longitude
     """
+    RADIUS_OF_EARTH = 6371.0
     return 2*RADIUS_OF_EARTH*math.asin(
         haversine_formula(latitude1, longitude1, latitude2, longitude2)**.5
     )
@@ -45,4 +43,5 @@ def miles(kilometers):
     Arguments:
     kilometers -- float - the number in kilometers
     """
+    MILES_PER_KILOMETER = 0.621371
     return kilometers*MILES_PER_KILOMETER

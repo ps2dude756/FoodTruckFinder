@@ -1,6 +1,5 @@
 import os
 import sys
-import tempfile
 import unittest
 
 sys.path.insert(0, '../')
@@ -10,7 +9,7 @@ import main
 db_fd = None
 
 def setUpModule():
-    db_fd, main.app.config['DATABASE'] = tempfile.mkstemp()
+    main.app.config['DATABASE'] = 'test'
     main.init_db()
 
 def tearDownModule():

@@ -1,5 +1,6 @@
 import json
 import os
+import psycopg2
 import urllib2
 
 from flask import abort, Flask, g, make_response, render_template, request
@@ -8,11 +9,15 @@ from lib.database import DataBase
 from lib.data_source import DataSource
 
 DATA_URL = 'https://data.sfgov.org/api/views/rqzj-sfat/rows.json?accessType=DOWNLOAD'
-DATABASE_NAME = 'foodtrucks.db'
+DATABASE_NAME = 'foodtruckfinder'
+DATABASE_USER = 'root'
 
 app = Flask(__name__)
 app.config.from_object(__name__)
-app.config.update({'DATABASE': os.path.join(app.root_path, DATABASE_NAME)})
+app.config.update({
+    'DATABASE': DATABASE_NAME,
+    'DATABASE_USER': DATABASE_USER
+})
 
 def init_db():
     """Initializes the database stored in app.config['DATABASE'] with data from 
@@ -34,18 +39,21 @@ def init_db():
         db = get_db()
         db.init_database()
         for item in ds.gen_items(headers):
-            db.add_row(
-                item['Applicant'], 
-                item['Address'], 
-                item['FoodItems'], 
-                item['Latitude'], 
-                item['Longitude']
-            )
+            try:
+                db.add_row(
+                    item['Applicant'], 
+                    item['Address'], 
+                    item['FoodItems'], 
+                    item['Latitude'], 
+                    item['Longitude']
+                )
+            except psycopg2.IntegrityError:
+                pass
 
 def get_db():
     """Returns a database connections, or creates one if one doesn't exist"""
     if not hasattr(g, 'db'):
-        g.db = DataBase(app.config['DATABASE'])
+        g.db = DataBase(app.config['DATABASE'], app.config['DATABASE_USER'])
     return g.db
 
 @app.teardown_appcontext

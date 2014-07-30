@@ -17,7 +17,7 @@ ROWS = [
 
 class Test_DataBase(unittest.TestCase):
     def setUp(self):
-        self.database = DataBase(':memory:')
+        self.database = DataBase('test', 'root')
         self.database.init_database()
         for row in ROWS:
             self.database.add_row(*row)
