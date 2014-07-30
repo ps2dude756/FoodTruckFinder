@@ -11,6 +11,8 @@ DATA_URL = 'https://data.sfgov.org/api/views/rqzj-sfat/rows.json?accessType=DOWN
 DATABASE_NAME = 'foodtrucks.db'
 
 app = Flask(__name__)
+app.config.from_object(__name__)
+app.config.update({'DATABASE': os.path.join(app.root_path, DATABASE_NAME)})
 
 def init_db():
     with app.app_context():
@@ -39,7 +41,7 @@ def init_db():
 
 def get_db():
     if not hasattr(g, 'db'):
-        g.db = DataBase(DATABASE_NAME)
+        g.db = DataBase(app.config['DATABASE'])
     return g.db
 
 @app.teardown_appcontext
@@ -57,7 +59,7 @@ def foodtrucks():
         longitude = float(request.args.get('longitude'))
         latitude = float(request.args.get('latitude'))
         distance = float(request.args.get('distance'))
-    except TypeError:
+    except (TypeError, ValueError):
         abort(400)
 
     foodtrucks = [x for x in get_db().gen_within_distance(distance, latitude, longitude)]
