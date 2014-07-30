@@ -2,28 +2,45 @@
 <html>
   <title>Food Truck Finder</title>
   <head>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCFMI7tFgQMP5x2atVt207_bRYYPN9ubIs"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='util.js') }}"></script>
   </head>
   <body>
     <div>
-      <form action="{{ url_for('index') }}" method=get>
-        <table>
-          <tr><td>Longitude</td><td><input type=text name=longitude></td></tr>
-          <tr><td>Latitude</td><td><input type=text name=latitude></td></tr>
-          <tr><td>Distance</td><td><input type=text name=distance></td></tr>
-        </table>
+      <form action="{{ url_for('index') }}" method=get id="address_form" name="address_form">
+        <input type=hidden id="latitude" name="latitude">
+        <input type=hidden id="longitude" name="longitude">
+        Find foodtrucks within 
+        <input type=text id="distance" name="distance"> miles of
+        <input type=text id="address" name="address"> San Francisco, California!
         <input type=submit value=Submit>
       </form>
+      <script type="text/javascript">
+        window.onload = function() {
+          document.address_form.onsubmit = function() {
+            var address = document.address_form.address.value;
+            var form = document.address_form;
+            if (address) {
+              add_latlng_to_form(address + 'San Francisco, California', form);
+              return false;
+            } else {
+              document.address_form.address.remove();
+              return true;
+            }
+          }
+        }
+      </script>
     </div>
     <div>
       <script type="text/javascript">
         var params = getUrlParameters();
         if (
-          typeof params['longitude'] == 'number' && 
-          typeof params['latitude'] == 'number' && 
-          typeof params['distance'] == 'number'
+          param_is_valid(params['latitude']) &&
+          param_is_valid(params['longitude']) &&
+          param_is_valid(params['distance'])
         ) {
-          var url = create_url(params);
+          var base_url = location.protocol + '//' + location.host + '/api/foodtrucks';
+          var url = create_url(base_url, params);
           var foodtrucks = JSON.parse(httpRequest(url, "GET", null));
           document.body.appendChild(create_table(foodtrucks));
         }
