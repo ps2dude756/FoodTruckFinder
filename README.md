@@ -56,9 +56,11 @@ Additionally, there were some foodtrucks on [DataSF: Food Trucks](https://data.s
 that did not have latitude and longitude coordinates, so I was unable to add 
 them to the database. I'd like to have included a function to geocode them using
 Google's HTTP Maps API at index-time.
-Finally, I was unaware when starting this project that Heroku only supports Postgresql.
-Had I known this, I would not have spent time developing my code to work with sqlite, 
-and would have developed for Postgresql from the beginning.
+Finally, I would have researched Heroku more before starting this project. I 
+was unaware that Heroku only supports Postgresql, and additionally that it does 
+not support PL/Python. Had I known this, I would not have spent time developing 
+my code to work with sqlite, and would have developed for Postgresql without 
+PL/Python from the beginning.
 
 Link to other code
 ==================

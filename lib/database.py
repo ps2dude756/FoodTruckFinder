@@ -1,31 +1,45 @@
-import inspect
-import math
-import os
 import psycopg2
 
-import haversine
-
-GREAT_CIRCLE_DISTANCE_FUNCTION = """
+MILES = """
     create or replace function 
-    great_circle_distance(latitude1 real, longitude1 real, latitude2 real, longitude2 real) 
-    returns real as $$""" + '\n{0}\n'.format(
-        inspect.getsource(haversine)
-    ) + """return great_circle_distance(latitude1, longitude1, latitude2, longitude2) $$ 
-    language plpythonu"""
-MILES_FUNCTION = """
-    create or replace function
-    miles(kilometers real)
-    returns real as $$""" + '\n{0}\n'.format(
-        inspect.getsource(haversine)
-    ) + """return miles(kilometers) $$ 
-    language plpythonu"""
-RADIANS_FUNCTION = """
-    create or replace function
-    radians(degrees real)
-    returns real as $$
-        import math
-        return math.radians(degrees)
-    $$ language plpythonu"""
+    miles(kilometers double precision) 
+    returns double precision
+    as 'select 0.621371*kilometers;'
+    language sql
+"""
+HAVERSINE_FUNCTION = """
+    create or replace function 
+    haversine_function(theta1 double precision, theta2 double precision) 
+    returns double precision
+    as 'select power(sin((theta2-theta1)/2.0), 2.0);'
+    language sql
+"""
+HAVERSINE_FORMULA = """
+    create or replace function 
+    haversine_formula(
+        latitude1 double precision, 
+        longitude1 double precision, 
+        latitude2 double precision, 
+        longitude2 double precision
+    ) returns double precision
+    as 'select haversine_function(latitude1, latitude2) + 
+    cos(latitude1)*cos(latitude2)*
+    haversine_function(longitude1, longitude2);'
+    language sql
+"""
+GREAT_CIRCLE_DISTANCE = """
+    create or replace function 
+    great_circle_distance(
+        latitude1 double precision, 
+        longitude1 double precision, 
+        latitude2 double precision, 
+        longitude2 double precision
+    ) returns double precision
+    as 'select 2*6371.0*asin(sqrt(
+        haversine_formula(latitude1, longitude1, latitude2, longitude2)
+    ));'
+    language sql
+"""
 
 class DataBase:
     def __init__(self, database, user, password, host, port):
@@ -50,17 +64,17 @@ class DataBase:
                 name text not null,
                 address text not null,
                 fooditems text not null,
-                latitude real not null,
-                longitude real not null
+                latitude double precision not null,
+                longitude double precision not null
             );
         """
 
         cur = self.conn.cursor()
         cur.execute(statement)
-        cur.execute(GREAT_CIRCLE_DISTANCE_FUNCTION)
-        cur.execute(MILES_FUNCTION)
-        cur.execute(RADIANS_FUNCTION)
-
+        cur.execute(HAVERSINE_FUNCTION)
+        cur.execute(HAVERSINE_FORMULA)
+        cur.execute(GREAT_CIRCLE_DISTANCE)
+        cur.execute(MILES)
         self.conn.commit()
         cur.close()
 
@@ -110,8 +124,8 @@ class DataBase:
             where miles(great_circle_distance(
                 radians(latitude),
                 radians(longitude),
-                radians(%s)::real,
-                radians(%s)::real
+                radians(%s),
+                radians(%s)
             )) <= %s
         """
         cur = self.conn.cursor()
