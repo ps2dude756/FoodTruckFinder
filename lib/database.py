@@ -28,8 +28,14 @@ RADIANS_FUNCTION = """
     $$ language plpythonu"""
 
 class DataBase:
-    def __init__(self, database, user):
-        self.conn = psycopg2.connect(database=database, user=user)
+    def __init__(self, database, user, password, host, port):
+        self.conn = psycopg2.connect(
+            database=database, 
+            user=user,
+            password=password,
+            host=host,
+            port=port
+        )
 
     def __del__(self):
         self.conn.close()

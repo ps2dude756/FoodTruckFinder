@@ -1,5 +1,8 @@
+import os
 import sys
 import unittest
+
+from urlparse import urlparse
 
 sys.path.insert(0, '../')
 
@@ -17,7 +20,14 @@ ROWS = [
 
 class Test_DataBase(unittest.TestCase):
     def setUp(self):
-        self.database = DataBase('test', 'root')
+        url = urlparse(os.environ['DATABASE_URL'])        
+        self.database = DataBase(
+            url.path[1:],
+            url.username,
+            url.password,
+            url.hostname,
+            url.port
+        )
         self.database.init_database()
         for row in ROWS:
             self.database.add_row(*row)

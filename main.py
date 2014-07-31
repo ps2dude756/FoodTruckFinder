@@ -4,19 +4,23 @@ import psycopg2
 import urllib2
 
 from flask import abort, Flask, g, make_response, render_template, request
+from urlparse import urlparse
 
 from lib.database import DataBase
 from lib.data_source import DataSource
 
 DATA_URL = 'https://data.sfgov.org/api/views/rqzj-sfat/rows.json?accessType=DOWNLOAD'
-DATABASE_NAME = 'foodtruckfinder'
-DATABASE_USER = 'root'
 
 app = Flask(__name__)
 app.config.from_object(__name__)
+
+url = urlparse(os.environ['DATABASE_URL'])
 app.config.update({
-    'DATABASE': DATABASE_NAME,
-    'DATABASE_USER': DATABASE_USER
+    'PATH': url.path[1:],
+    'USER': url.username,
+    'PASSWORD': url.password,
+    'HOST': url.hostname,
+    'PORT': url.port
 })
 
 def init_db():
@@ -53,7 +57,13 @@ def init_db():
 def get_db():
     """Returns a database connections, or creates one if one doesn't exist"""
     if not hasattr(g, 'db'):
-        g.db = DataBase(app.config['DATABASE'], app.config['DATABASE_USER'])
+        g.db = DataBase(
+            app.config['PATH'], 
+            app.config['USER'],
+            app.config['PASSWORD'],
+            app.config['HOST'],
+            app.config['PORT']
+        )
     return g.db
 
 @app.teardown_appcontext
